@@ -4,7 +4,7 @@
   </div>
 </template>
 <script>
-import { ChessPiece, ChessPieceColor, ChessPieceType } from "@/types"
+import { ChessPiece } from "@/types"
 
 export default {
   props: {
@@ -15,7 +15,7 @@ export default {
       if (this.piece) {
         return `img/${this.piece.getImage()}`
       } else {
-        return null
+        return ``
       }
     },
   },

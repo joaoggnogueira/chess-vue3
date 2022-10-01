@@ -1,3 +1,18 @@
+export enum ChessPieceType {
+  Peao,
+  Cavalo,
+  Rainha,
+  Rei,
+  Torre,
+  Bispo,
+}
+
+export enum ChessPieceColor {
+  Uncolor = -1,
+  Branca,
+  Preta,
+}
+
 export class ChessPiece {
   color: ChessPieceColor
   type: ChessPieceType
@@ -41,18 +56,4 @@ export class ChessPiece {
     }
     return images[this.color][this.type]
   }
-}
-
-export enum ChessPieceType {
-  Peao,
-  Cavalo,
-  Rainha,
-  Rei,
-  Torre,
-  Bispo,
-}
-
-export enum ChessPieceColor {
-  Branca,
-  Preta,
 }

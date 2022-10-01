@@ -3,6 +3,7 @@ import Slot from "./Slot.vue"
 import Piece from "./Piece.vue"
 
 import { ChessPiece, ChessPieceColor, ChessPieceType } from "@/types"
+import { atBound } from "@/utils"
 
 function c(a: ChessPieceType, b: ChessPieceColor) {
   return new ChessPiece(a, b)
@@ -25,6 +26,8 @@ type ChessMoveOptions = {
   slots?: Array<Array<ChessSlot>>
 }
 
+type ActionTreeFunction = (arow: number, acol: number, piece: ChessPiece) => boolean
+
 export default {
   created() {
     this.test()
@@ -34,16 +37,10 @@ export default {
     Piece,
   },
   data: () => ({
-    Torre,
-    Cavalo,
-    Bispo,
-    Rei,
-    Rainha,
-    Peao,
-    Preta,
-    Branca,
-    turn: Branca,
-    RainhaEmPerigo: false,
+    Preta: Preta as Readonly<ChessPieceColor>,
+    Branca: Branca as Readonly<ChessPieceColor>,
+    turn: Branca as ChessPieceColor,
+    RainhaEmPerigo: false as boolean,
     cemiterioBranca: [] as Array<ChessPiece>,
     cemiterioPreta: [] as Array<ChessPiece>,
     slots: [
@@ -133,7 +130,7 @@ export default {
 
   methods: {
     movePiece(row: number, col: number) {
-      if (this.atBound(this.slots, row, col) && this.selected) {
+      if (atBound(this.slots, row, col) && this.selected) {
         const slot = this.slots[row][col]
         if (slot.piece) {
           if (this.turn == Preta) {
@@ -155,14 +152,14 @@ export default {
       slotOrigin: ChessSlot,
       row: number,
       col: number,
-      action: Function,
+      action: ActionTreeFunction,
       options?: ChessMoveOptions
     ): boolean {
       const { can_eat, only_eat } = options || {}
-      let result = false
+      let result: boolean = false
       if (slotOrigin?.piece) {
         const selectedpiece = slotOrigin.piece
-        if (this.atBound(slots, row, col)) {
+        if (atBound(slots, row, col)) {
           if (slots[row][col].piece?.color == selectedpiece.color) {
             return false
           }
@@ -183,9 +180,6 @@ export default {
     getAllSlotsOfColor(slots: Array<Array<ChessSlot>>, color: ChessPieceColor): Array<ChessSlot> {
       return slots.reduce((acc, d) => acc.concat(d), []).filter((d) => d.piece?.color == color)
     },
-    atBound(slots: Array<Array<ChessSlot>>, row: number, col: number): boolean {
-      return !!(slots[row] && slots[row][col])
-    },
     clearMoveOptions() {
       const slots = this.flatSlots
       slots.forEach((d) => {
@@ -198,14 +192,8 @@ export default {
         d.hasMove = false
       })
     },
-    colorOf(row: number, col: number) {
-      if (this.atBound(this.slots, row, col) && this.slots[row][col].piece) {
-        return this.slots[row][col].piece?.color
-      }
-      return -1
-    },
     hasPieceOn(row: number, col: number) {
-      if (this.atBound(this.slots, row, col)) {
+      if (atBound(this.slots, row, col)) {
         return !!this.slots[row + 1][col].piece
       }
       return false
@@ -213,13 +201,13 @@ export default {
     pushPeaoMoveOptions(
       slots: Array<Array<ChessSlot>>,
       slot: ChessSlot,
-      action: Function
+      action: ActionTreeFunction
     ): boolean {
       if (!slot.piece) {
         return false
       }
       const { row, col, piece } = slot
-      let result = false
+      let result: boolean = false
       if (piece.color == Preta) {
         result =
           this.testMoveOption(slots, slot, row + 1, col + 1, action, { only_eat: true }) || result
@@ -250,17 +238,17 @@ export default {
     pushTorreMoveOptions(
       slots: Array<Array<ChessSlot>>,
       slot: ChessSlot,
-      action: Function
+      action: ActionTreeFunction
     ): boolean {
       if (!slot.piece) {
         return false
       }
       const { row, col } = slot
-      let toRight = 1
-      let toLeft = 1
-      let toTop = 1
-      let toBottom = 1
-      let result = false
+      let toRight: number = 1
+      let toLeft: number = 1
+      let toTop: number = 1
+      let toBottom: number = 1
+      let result: boolean = false
 
       while (this.testMoveOption(slots, slot, row + toRight, col, action, { can_eat: true })) {
         result = true
@@ -283,13 +271,13 @@ export default {
     pushCavaloMoveOptions(
       slots: Array<Array<ChessSlot>>,
       slot: ChessSlot,
-      action: Function
+      action: ActionTreeFunction
     ): boolean {
       if (!slot.piece) {
         return false
       }
       const { row, col } = slot
-      let result = false
+      let result: boolean = false
       result =
         this.testMoveOption(slots, slot, row + 1, col + 2, action, { can_eat: true }) || result
       result =
@@ -311,14 +299,14 @@ export default {
     pushBispoMoveOptions(
       slots: Array<Array<ChessSlot>>,
       slot: ChessSlot,
-      action: Function
+      action: ActionTreeFunction
     ): boolean {
       if (!slot.piece) {
         return false
       }
       const { row, col } = slot
-      let result = false
-      let i = 1
+      let result: boolean = false
+      let i: number = 1
       while (this.testMoveOption(slots, slot, row + i, col + i, action, { can_eat: true })) {
         result = true
         i++
@@ -340,7 +328,11 @@ export default {
       }
       return result
     },
-    pushReiMoveOptions(slots: Array<Array<ChessSlot>>, slot: ChessSlot, action: Function): boolean {
+    pushReiMoveOptions(
+      slots: Array<Array<ChessSlot>>,
+      slot: ChessSlot,
+      action: ActionTreeFunction
+    ): boolean {
       let result = false
       result = this.pushTorreMoveOptions(slots, slot, action) || result
       result = this.pushBispoMoveOptions(slots, slot, action) || result
@@ -349,7 +341,7 @@ export default {
     pushRainhaMoveOptions(
       slots: Array<Array<ChessSlot>>,
       slot: ChessSlot,
-      action: Function
+      action: ActionTreeFunction
     ): boolean {
       if (!slot.piece) {
         return false
@@ -376,7 +368,7 @@ export default {
       this.RainhaEmPerigo = false
       const cloned = this.slots
       const rivalcolor = this.turn == Branca ? Preta : Branca
-      let isOnDanger = false
+      let isOnDanger: boolean = false
       const action = (arow: number, acol: number, chesspiece: ChessPiece) => {
         const piece = cloned[arow][acol].piece
         if (piece && piece.type === Rainha && piece.color === this.turn) {
@@ -402,7 +394,9 @@ export default {
           slot.hasMove = this.switchMovement(cloned, slot, (arow: number, acol: number) => {
             const danger = this.moveRainhaEmPerigo(arow, acol, slot)
             if (!danger) {
-              return !this.slots[arow][acol].piece || this.slots[arow][acol].piece?.color != this.turn
+              return (
+                !this.slots[arow][acol].piece || this.slots[arow][acol].piece?.color != this.turn
+              )
             }
             return false
           })
@@ -419,7 +413,7 @@ export default {
         cloned[row][col].piece = slot.piece
         cloned[slot.row][slot.col].piece = null
         const rivalcolor = slot.piece.color == Branca ? Preta : Branca
-        let isOnDanger = false
+        let isOnDanger: boolean = false
         const action = (arow: number, acol: number, chesspiece: ChessPiece) => {
           const piece = cloned[arow][acol].piece
           if (piece && piece.type === Rainha && piece.color === this.turn) {
@@ -440,7 +434,11 @@ export default {
       }
       return false
     },
-    switchMovement(slots: Array<Array<ChessSlot>>, slot: ChessSlot, action: Function): boolean {
+    switchMovement(
+      slots: Array<Array<ChessSlot>>,
+      slot: ChessSlot,
+      action: ActionTreeFunction
+    ): boolean {
       switch (slot.piece?.type) {
         case Peao:
           return this.pushPeaoMoveOptions(slots, slot, action)

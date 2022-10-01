@@ -46,8 +46,8 @@ export default {
     Rainha: ChessPieceType.Rainha,
   }),
   computed: {
-    selectable() {
-      return this.piece && this.turn == this.piece.color
+    selectable(): boolean {
+      return !!this.piece && this.turn == this.piece.color
     },
     colorClass() {
       const piece = this.piece || this.move
@@ -57,14 +57,14 @@ export default {
       if (this.piece) {
         return `url('img/${this.piece.getImage()}')`
       } else {
-        return null
+        return ""
       }
     },
     moveImage() {
       if (this.move) {
         return `url('img/${this.move.getImage()}')`
       } else {
-        return null
+        return ""
       }
     },
   },
