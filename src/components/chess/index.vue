@@ -4,6 +4,7 @@ import Piece from "./Piece.vue"
 
 import { ChessPiece, ChessPieceColor, ChessPieceType } from "@/types"
 import { atBound } from "@/utils"
+import { defineComponent } from "vue"
 
 function c(a: ChessPieceType, b: ChessPieceColor) {
   return new ChessPiece(a, b)
@@ -28,7 +29,7 @@ type ChessMoveOptions = {
 
 type ActionTreeFunction = (arow: number, acol: number, piece: ChessPiece) => boolean
 
-export default {
+export default defineComponent({
   created() {
     this.test()
   },
@@ -475,11 +476,11 @@ export default {
     },
   },
   computed: {
-    flatSlots() {
+    flatSlots(): Array<ChessSlot> {
       return this.slots.reduce((acc, d) => acc.concat(d), [])
     },
   },
-}
+})
 </script>
 <template>
   <div class="chessboard-parent">
@@ -495,8 +496,8 @@ export default {
         v-for="(slot, index) in flatSlots"
         :key="index"
         :odd_or_even="(index + Math.floor(index / 8)) % 2 == 0 ? 'even' : 'odd'"
-        :piece="slot.piece"
-        :move="slot.move"
+        :piece="slot.piece || undefined"
+        :move="slot.move || undefined"
         :hasMove="slot.hasMove"
         :turn="turn"
         :selected="selected === slot"
@@ -522,10 +523,12 @@ h3 {
   margin-top: 0px;
   margin-bottom: 0px;
 }
+
 .chessboard-parent {
   background: rgb(97, 73, 48);
   padding: 8px;
 }
+
 .chessboard {
   width: calc(100vh - 200px);
   height: calc(100vh - 200px);
@@ -534,6 +537,7 @@ h3 {
   grid-template-columns: repeat(8, calc(100% / 8));
   grid-template-rows: repeat(8, calc(100% / 8));
 }
+
 .cemiterio {
   height: 40px;
   display: flex;

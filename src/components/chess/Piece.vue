@@ -3,15 +3,16 @@
     <img :src="imageSrc" />
   </div>
 </template>
-<script>
+<script lang="ts">
 import { ChessPiece } from "@/types"
+import { defineComponent } from "vue"
 
-export default {
+export default defineComponent({
   props: {
     piece: ChessPiece,
   },
   computed: {
-    imageSrc() {
+    imageSrc(): string {
       if (this.piece) {
         return `img/${this.piece.getImage()}`
       } else {
@@ -19,7 +20,7 @@ export default {
       }
     },
   },
-}
+})
 </script>
 <style lang="scss" scoped>
 .piece {

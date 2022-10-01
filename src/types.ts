@@ -20,7 +20,7 @@ export class ChessPiece {
     this.type = type
     this.color = color
   }
-  toString() {
+  toString():string {
     const types = {
       [ChessPieceType.Peao]: "peão",
       [ChessPieceType.Torre]: "torre",
@@ -32,11 +32,20 @@ export class ChessPiece {
     const colors = {
       [ChessPieceColor.Branca]: "branca",
       [ChessPieceColor.Preta]: "preta",
+      [ChessPieceColor.Uncolor]: "uncolor",
     }
     return types[this.type] + " " + colors[this.color]
   }
-  getImage() {
+  getImage(): string {
     const images = {
+      [ChessPieceColor.Uncolor]:{
+        [ChessPieceType.Peao]: "peao_uncolor.svg",
+        [ChessPieceType.Torre]: "torre_uncolor.svg",
+        [ChessPieceType.Cavalo]: "cavalo_uncolor.svg",
+        [ChessPieceType.Bispo]: "bispo_uncolor.svg",
+        [ChessPieceType.Rei]: "rei_uncolor.svg",
+        [ChessPieceType.Rainha]: "rainha_uncolor.svg",
+      },
       [ChessPieceColor.Branca]: {
         [ChessPieceType.Peao]: "peao_branca.svg",
         [ChessPieceType.Torre]: "torre_branca.svg",

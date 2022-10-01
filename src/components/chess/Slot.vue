@@ -26,8 +26,9 @@
 </template>
 <script lang="ts">
 import { ChessPiece, ChessPieceColor, ChessPieceType } from "@/types"
+import { defineComponent } from "vue"
 
-export default {
+export default defineComponent({
   props: {
     odd_or_even: { type: String, required: true },
     piece: { type: ChessPiece, required: false },
@@ -49,18 +50,18 @@ export default {
     selectable(): boolean {
       return !!this.piece && this.turn == this.piece.color
     },
-    colorClass() {
+    colorClass(): string {
       const piece = this.piece || this.move
       return piece ? (this.Branca == piece.color ? "white" : "black") : "uncolor"
     },
-    pieceImage() {
+    pieceImage(): string {
       if (this.piece) {
         return `url('img/${this.piece.getImage()}')`
       } else {
         return ""
       }
     },
-    moveImage() {
+    moveImage(): string {
       if (this.move) {
         return `url('img/${this.move.getImage()}')`
       } else {
@@ -78,7 +79,7 @@ export default {
       }
     },
   },
-}
+})
 </script>
 <style lang="scss" scoped>
 .chess-slot {
