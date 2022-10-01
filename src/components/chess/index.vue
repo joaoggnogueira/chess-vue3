@@ -1,8 +1,11 @@
 <script lang="ts">
 import Slot from "./Slot.vue"
 import Piece from "./Piece.vue"
+import Dialog from "@/components/Dialog.vue"
 
 import { ChessPiece, ChessPieceColor, ChessPieceType } from "@/types"
+import type { ChessMoveOptions, ChessSlot, ActionTreeFunction } from "@/types"
+
 import { atBound } from "@/utils"
 import { defineComponent } from "vue"
 
@@ -13,22 +16,6 @@ function c(a: ChessPieceType, b: ChessPieceColor) {
 const { Torre, Cavalo, Bispo, Rei, Rainha, Peao } = ChessPieceType
 const { Preta, Branca } = ChessPieceColor
 
-type ChessSlot = {
-  piece: ChessPiece | null
-  move: ChessPiece | null
-  row: number
-  col: number
-  hasMove: boolean
-}
-
-type ChessMoveOptions = {
-  can_eat?: boolean
-  only_eat?: boolean
-  slots?: Array<Array<ChessSlot>>
-}
-
-type ActionTreeFunction = (arow: number, acol: number, piece: ChessPiece) => boolean
-
 export default defineComponent({
   created() {
     this.test()
@@ -36,12 +23,32 @@ export default defineComponent({
   components: {
     Slot,
     Piece,
+    Dialog,
   },
   data: () => ({
     Preta: Preta as Readonly<ChessPieceColor>,
     Branca: Branca as Readonly<ChessPieceColor>,
+    Torre: Torre as Readonly<ChessPieceType>,
+    Cavalo: Cavalo as Readonly<ChessPieceType>,
+    Bispo: Bispo as Readonly<ChessPieceType>,
+    Rei: Rei as Readonly<ChessPieceType>,
+    Rainha: Rainha as Readonly<ChessPieceType>,
+    Peao: Peao as Readonly<ChessPieceType>,
     turn: Branca as ChessPieceColor,
     RainhaEmPerigo: false as boolean,
+    promotionDialog: null as ChessPiece | null,
+    promotionPiecesPreta: [
+      c(Torre, Preta),
+      c(Cavalo, Preta),
+      c(Bispo, Preta),
+      c(Rei, Preta),
+    ] as Array<ChessPiece>,
+    promotionPiecesbranca: [
+      c(Torre, Branca),
+      c(Cavalo, Branca),
+      c(Bispo, Branca),
+      c(Rei, Branca),
+    ] as Array<ChessPiece>,
     cemiterioBranca: [] as Array<ChessPiece>,
     cemiterioPreta: [] as Array<ChessPiece>,
     slots: [
@@ -144,8 +151,18 @@ export default defineComponent({
         this.selected.piece = null
         this.selected = null
         this.clearMoveOptions()
-        this.turn = this.turn == Preta ? Branca : Preta
-        this.test()
+        if (this.turn == Preta) {
+          if (row == 7 && this.slots[row][col].piece?.type == Peao) {
+            this.promotionDialog = this.slots[row][col].piece
+            return
+          }
+        } else {
+          if (row == 0 && this.slots[row][col].piece?.type == Peao) {
+            this.promotionDialog = this.slots[row][col].piece
+            return
+          }
+        }
+        this.nextTurn()
       }
     },
     testMoveOption(
@@ -474,10 +491,24 @@ export default defineComponent({
     cloneSlots(slots: Array<Array<ChessSlot>>): Array<Array<ChessSlot>> {
       return slots.map((rows) => rows.map((d) => ({ ...d })))
     },
+    promoteTo(type: ChessPieceType) {
+      if (this.promotionDialog) {
+        this.promotionDialog.type = type
+        this.promotionDialog = null
+        this.nextTurn()
+      }
+    },
+    nextTurn() {
+      this.turn = this.turn == Preta ? Branca : Preta
+      this.test()
+    },
   },
   computed: {
     flatSlots(): Array<ChessSlot> {
       return this.slots.reduce((acc, d) => acc.concat(d), [])
+    },
+    promotionPieces(): Array<ChessPiece> {
+      return this.turn == Branca ? this.promotionPiecesbranca : this.promotionPiecesPreta
     },
   },
 })
@@ -516,9 +547,32 @@ export default defineComponent({
     <div class="cemiterio">
       <Piece v-for="(piece, index) in cemiterioBranca" :piece="piece" :key="index" />
     </div>
+    <Dialog :open="!!promotionDialog">
+      <div style="width: 350px">
+        <h3 style="text-align: center; margin-bottom: 16px">
+          Escolha uma das peças para promover o Peão
+        </h3>
+        <div class="promotionList">
+          <button
+            @click="promoteTo(piece.type)"
+            class="flatButton"
+            v-for="piece in promotionPieces"
+            :key="piece.id"
+          >
+            <Piece :piece="piece" />
+          </button>
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
-<style scoped>
+<style lang="scss" scoped>
+.promotionList {
+  display: flex;
+  justify-content: center;
+  width: 350px;
+  height: 80px;
+}
 h3 {
   margin-top: 0px;
   margin-bottom: 0px;
